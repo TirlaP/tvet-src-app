@@ -46,7 +46,6 @@ db.on('versionchange', function(event) {
 });
 
 // Initialize with some example data in development mode
-if (import.meta.env.DEV) {
   db.on('ready', async () => {
     // Check if we need to initialize the database
     const adminCount = await db.adminAudit.count();
@@ -109,6 +108,5 @@ if (import.meta.env.DEV) {
       }
     }
   });
-}
 
 export default db;
