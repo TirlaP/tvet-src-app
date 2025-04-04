@@ -78,7 +78,7 @@ db.on('ready', async () => {
       const testStudentId = await db.students.add({
         studentNumber: 'ST12345',
         fullName: 'Test Student',
-        email: 'test@example.com',
+        email: 'petru.tirla@gmail.com',
         cellNumber: '0781234567',
         course: 'Computer Science',
         yearOfStudy: '2',
