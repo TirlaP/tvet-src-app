@@ -1,3 +1,10 @@
+export interface Admin {
+  id?: number;
+  username: string;
+  password: string; // In production, you should store a hashed password
+  createdAt: Date;
+}
+
 export interface Student {
   id?: number;
   studentNumber: string;
