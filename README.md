@@ -21,8 +21,7 @@ A secure, mobile-first digital platform designed to streamline the nomination pr
   - React Hook Form with Zod validation
 
 - **Database**:
-  - Dexie.js (IndexedDB wrapper)
-  - Can be migrated to SQLite or other databases
+  - Dexie.js (IndexedDB wrapper for client-side storage)
 
 ## Getting Started
 
@@ -35,7 +34,7 @@ A secure, mobile-first digital platform designed to streamline the nomination pr
 
 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/tvet-src-app.git
+git clone https://github.com/TirlaP/tvet-src-app.git
 cd tvet-src-app
 ```
 
@@ -54,6 +53,24 @@ npm run dev
 npm run build
 ```
 
+## Deployment
+
+This application is configured for deployment on Netlify. The deployment is handled via the following files:
+
+- `netlify.toml`: Configuration file for Netlify deployment
+- `build.sh`: Build script that can be used locally (Netlify uses `npm run build` directly)
+
+### Deploying to Netlify
+
+1. Push the code to your GitHub repository
+2. Connect your repository to Netlify
+3. Configure the build settings:
+   - Build command: `npm run build`
+   - Publish directory: `dist`
+4. Deploy!
+
+Netlify will automatically handle routing for the SPA with the redirects configured in the `netlify.toml` file.
+
 ## Project Structure
 
 - `/src/components`: Reusable UI components
@@ -61,7 +78,7 @@ npm run build
 - `/src/contexts`: React contexts
 - `/src/hooks`: Custom React hooks
 - `/src/lib`: Utility functions and services
-- `/src/db`: Database configuration
+- `/src/db`: Database configuration (Dexie.js)
 - `/src/types`: TypeScript type definitions
 
 ## User Flows
@@ -87,7 +104,7 @@ npm run build
 
 ## Security & Compliance
 
-- Data is stored securely
+- Data is stored securely using client-side IndexedDB
 - Consent is required from all participants
 - All actions are audited
 - POPIA compliant data handling

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This is a simple build script for the TVET SRC Nomination App
+# This is a build script for the TVET SRC Nomination App
 
 echo "Building TVET SRC Nomination App..."
 
@@ -10,13 +10,9 @@ if [ "$1" == "--install" ]; then
   npm install --legacy-peer-deps
 fi
 
-# Create the dist folder if it doesn't exist
-mkdir -p dist
-
-# Copy public assets
-echo "Copying public assets..."
-cp -r public/* dist/ 2>/dev/null || :
-cp index.html dist/
+# Run the Vite build command
+echo "Running Vite build..."
+npm run build
 
 echo "Build completed successfully!"
 echo ""
