@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useFormWizard } from '../../contexts/FormWizardContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { FileUpload } from '../ui/file-upload';
@@ -7,9 +8,25 @@ import { CameraComponent } from '../ui/camera';
 import { SignaturePad } from '../ui/signature-pad';
 import { Alert, AlertDescription } from '../ui/alert';
 import { InfoIcon } from 'lucide-react';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
+import { Input } from '../ui/input';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { isValidStudentNumber } from '../../lib/utils';
+
+// Create a schema for the student number validation
+const studentNumberSchema = z.object({
+  studentNumber: z.string().refine(isValidStudentNumber, {
+    message: 'Please enter a valid student number'
+  })
+});
+
+type StudentNumberData = z.infer<typeof studentNumberSchema>;
 
 const NomineeDocuments: React.FC = () => {
   const { formState, setFormData, prevStep, nextStep } = useFormWizard();
+  const { currentUser } = useAuth();
   
   const [studentCardImage, setStudentCardImage] = useState<string>(
     formState.data.studentCardImage || ''
@@ -23,7 +40,15 @@ const NomineeDocuments: React.FC = () => {
   
   const [error, setError] = useState<string | null>(null);
 
-  const handleContinue = () => {
+  const form = useForm<StudentNumberData>({
+    resolver: zodResolver(studentNumberSchema),
+    defaultValues: {
+      studentNumber: formState.data.studentNumber || '',
+    },
+    mode: 'onChange',
+  });
+
+  const handleContinue = (studentNumberData: StudentNumberData) => {
     // Validate that all required files are uploaded
     if (!studentCardImage) {
       setError('Please upload your student card image');
@@ -43,8 +68,9 @@ const NomineeDocuments: React.FC = () => {
     // Clear any previous errors
     setError(null);
     
-    // Update form data with the documents
+    // Update form data with the documents and student number
     setFormData({
+      ...studentNumberData,
       studentCardImage,
       selfieImage,
       signature
@@ -61,6 +87,40 @@ const NomineeDocuments: React.FC = () => {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Student Information</CardTitle>
+          <CardDescription>
+            Enter your student number
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form>
+              <FormField
+                control={form.control}
+                name="studentNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Student Number</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Enter your student number" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Enter your student number as it appears on your student card
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
       
       <Card>
         <CardHeader>
@@ -128,7 +188,7 @@ const NomineeDocuments: React.FC = () => {
         </Button>
         <Button 
           type="button" 
-          onClick={handleContinue}
+          onClick={form.handleSubmit(handleContinue)}
         >
           Continue
         </Button>

@@ -89,6 +89,7 @@ export interface FormState {
   isSubmitting: boolean;
   isComplete: boolean;
   error?: string;
+  nominationId?: number; // Store the nomination ID when created
 }
 
 export interface NominationWithDetails extends Nomination {

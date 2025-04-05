@@ -15,15 +15,82 @@ import { InfoIcon } from 'lucide-react';
 // The steps for the nomination process
 const steps = [
   { title: "Personal Info", description: "Basic details" },
-  { title: "Documents", description: "Upload documents" },
+  { title: "Documents", description: "Student number & uploads" },
   { title: "Position", description: "Select position" },
   { title: "Share", description: "Get supporters" },
 ];
+
+const STORAGE_KEY = 'nomination_form_data';
+const STEP_LOCK_KEY = 'nomination_step_lock';
 
 const NominationFormContent: React.FC = () => {
   const { formState, goToStep } = useFormWizard();
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  
+  // This effect handles component mount (initialize state) and cleanup
+  useEffect(() => {
+    // Check if we're coming from a completed submission with a fresh page load
+    const stepLock = localStorage.getItem(STEP_LOCK_KEY);
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    
+    // If we have a lock but we're freshly navigating to the page (not from step 3->4)
+    // then we should clear it to ensure a fresh start
+    if (stepLock === 'step_4_locked' && document.referrer !== window.location.href) {
+      localStorage.removeItem(STEP_LOCK_KEY);
+      
+      // Also remove form data if we completed the submission (has nominationId)
+      if (savedData) {
+        try {
+          const parsedData = JSON.parse(savedData);
+          if (parsedData.isComplete && parsedData.nominationId) {
+            localStorage.removeItem(STORAGE_KEY);
+          }
+        } catch (error) {
+          console.error('Error parsing saved form data:', error);
+        }
+      }
+    } else if (formState.step === 4) {
+      // Only set the lock if we've naturally progressed to step 4 within the app flow
+      localStorage.setItem(STEP_LOCK_KEY, 'step_4_locked');
+    }
+    
+    // Cleanup
+    return () => {
+      // No cleanup needed here, we handle it in the "Go to Dashboard" action
+    };
+  }, [formState.step]);
+  
+  // Handle completed nominations logic
+  useEffect(() => {
+    const checkCompletedNomination = () => {
+      const savedData = localStorage.getItem(STORAGE_KEY);
+      if (!savedData) return;
+      
+      try {
+        const parsedData = JSON.parse(savedData);
+        
+        // If we have a completed nomination with an ID
+        if (parsedData.isComplete && parsedData.nominationId) {
+          const stepLock = localStorage.getItem(STEP_LOCK_KEY);
+          
+          // If there's a step lock, it means we're in the middle of the flow
+          // or just completed it - stay on step 4
+          if (stepLock === 'step_4_locked') {
+            goToStep(4);
+          } else {
+            // Otherwise, we've navigated away and come back - start fresh
+            localStorage.removeItem(STORAGE_KEY);
+            goToStep(1);
+          }
+        }
+      } catch (error) {
+        console.error('Error parsing saved form data:', error);
+      }
+    };
+    
+    checkCompletedNomination();
+  }, [goToStep]);
   
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -39,7 +106,7 @@ const NominationFormContent: React.FC = () => {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="mb-6">
+      <div className="mb-6 relative z-[5]">
         <Alert className="mb-4">
           <InfoIcon className="h-4 w-4" />
           <AlertDescription>
@@ -77,6 +144,32 @@ const NominationFormContent: React.FC = () => {
 };
 
 const NominationPage: React.FC = () => {
+  // This check ensures we don't load a completed form when the page is first loaded
+  // It acts as a safeguard in case the form context doesn't reset properly
+  React.useEffect(() => {
+    const checkAndClearCompletedForm = () => {
+      try {
+        const savedData = localStorage.getItem(STORAGE_KEY);
+        if (savedData) {
+          const parsedData = JSON.parse(savedData);
+          if (parsedData.isComplete === true && parsedData.nominationId) {
+            // Clear both keys if coming from outside (not from within the form flow)
+            const isDirectNavigation = !document.referrer.includes('/nominate');
+            if (isDirectNavigation) {
+              console.log('NominationPage: Clearing completed form on direct navigation');
+              localStorage.removeItem(STORAGE_KEY);
+              localStorage.removeItem('nomination_step_lock');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error checking form completion status:', error);
+      }
+    };
+    
+    checkAndClearCompletedForm();
+  }, []);
+  
   return (
     <FormWizardProvider>
       <NominationFormWrapper />
@@ -86,14 +179,14 @@ const NominationPage: React.FC = () => {
 
 // This wrapper component exists within the FormWizardProvider context
 const NominationFormWrapper: React.FC = () => {
-  const { formState } = useFormWizard();
+  const { formState, saveProgress } = useFormWizard();
   
   return (
     <NominationLayout
       title="SRC Nomination Form"
       subtitle={`Step ${formState.step} of ${steps.length}`}
       showSaveButton={formState.step < 4}
-      onSave={() => {/* Handle save logic */}}
+      onSave={saveProgress}
     >
       <NominationFormContent />
     </NominationLayout>

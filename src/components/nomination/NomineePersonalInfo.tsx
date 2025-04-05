@@ -2,7 +2,6 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { studentSchema } from '../../lib/validations';
 import { useFormWizard } from '../../contexts/FormWizardContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/button';
@@ -18,31 +17,47 @@ import {
 } from '../ui/form';
 import { Checkbox } from '../ui/checkbox';
 import { Card, CardContent } from '../ui/card';
+import { isValidEmail, isValidPhoneNumber } from '../../lib/utils';
 
-type NomineePersonalInfoData = z.infer<typeof studentSchema>;
+// Create a modified schema without student number for Step 1
+const personalInfoSchema = z.object({
+  fullName: z.string().min(2, { message: 'Full name must be at least 2 characters' }),
+  email: z.string().refine(isValidEmail, {
+    message: 'Please enter a valid email address'
+  }),
+  cellNumber: z.string().refine(isValidPhoneNumber, {
+    message: 'Please enter a valid South African phone number'
+  }),
+  course: z.string().min(2, { message: 'Course name is required' }),
+  yearOfStudy: z.string().min(1, { message: 'Year of study is required' }),
+  dataConsent: z.boolean().refine(val => val === true, {
+    message: 'You must consent to the data policy to continue'
+  })
+});
+
+type PersonalInfoData = z.infer<typeof personalInfoSchema>;
 
 const NomineePersonalInfo: React.FC = () => {
   const { formState, setFormData, nextStep } = useFormWizard();
   const { currentUser } = useAuth();
   
-  // Pre-fill form with current user data if available
-  const defaultValues: Partial<NomineePersonalInfoData> = {
+  // Pre-fill form with current user data if available, but ALWAYS set dataConsent to false
+  const defaultValues: Partial<PersonalInfoData> = {
     fullName: formState.data.fullName || currentUser?.fullName || '',
-    studentNumber: formState.data.studentNumber || currentUser?.studentNumber || '',
     email: formState.data.email || currentUser?.email || '',
     cellNumber: formState.data.cellNumber || currentUser?.cellNumber || '',
     course: formState.data.course || currentUser?.course || '',
     yearOfStudy: formState.data.yearOfStudy || currentUser?.yearOfStudy || '',
-    dataConsent: formState.data.dataConsent || currentUser?.dataConsent || false,
+    dataConsent: false, // Always default to unchecked
   };
 
-  const form = useForm<NomineePersonalInfoData>({
-    resolver: zodResolver(studentSchema),
+  const form = useForm<PersonalInfoData>({
+    resolver: zodResolver(personalInfoSchema),
     defaultValues,
     mode: 'onChange',
   });
 
-  const onSubmit = (data: NomineePersonalInfoData) => {
+  const onSubmit = (data: PersonalInfoData) => {
     setFormData(data);
     nextStep();
   };
@@ -65,24 +80,6 @@ const NomineePersonalInfo: React.FC = () => {
                     <FormDescription>
                       Enter your name as it appears on your student card
                     </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="studentNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Student Number</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Enter your student number" 
-                        {...field} 
-                        disabled={!!currentUser?.studentNumber}
-                      />
-                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -49,8 +49,39 @@ const safeFirebaseOperation = async <T>(operation: () => Promise<T>, fallback: T
 export const studentService = {
   async add(student: Student): Promise<string> {
     try {
-      // First add to Dexie for local storage
-      const id = await dexieDb.students.add(student);
+      // Check if student already exists in Dexie by id or studentNumber
+      let existingId: number | undefined;
+      
+      if (student.id) {
+        // First check by ID if present
+        const existing = await dexieDb.students.get(student.id);
+        if (existing) {
+          existingId = student.id;
+        }
+      }
+      
+      // If no ID found, check by studentNumber
+      if (!existingId && student.studentNumber) {
+        const existing = await dexieDb.students.where({ studentNumber: student.studentNumber }).first();
+        if (existing && existing.id) {
+          existingId = existing.id;
+        }
+      }
+      
+      let id: number;
+      
+      if (existingId) {
+        // Update existing student instead of adding new
+        id = existingId;
+        await dexieDb.students.update(id, {
+          ...student,
+          updatedAt: new Date()
+        });
+      } else {
+        // Add new student
+        id = await dexieDb.students.add(student);
+      }
+      
       const studentWithId = { ...student, id };
       
       // Then try to add to Firestore
@@ -62,6 +93,10 @@ export const studentService = {
       return id.toString();
     } catch (error) {
       console.error('Error adding student:', error);
+      // Return a string ID even if there's an error - this prevents retries that will just fail again
+      if (error.name === 'ConstraintError' && student.id) {
+        return student.id.toString();
+      }
       throw error;
     }
   },
@@ -157,8 +192,39 @@ export const studentService = {
 export const nominationService = {
   async add(nomination: Nomination): Promise<string> {
     try {
-      // Add to Dexie
-      const id = await dexieDb.nominations.add(nomination);
+      // Check if nomination already exists in Dexie
+      let existingId: number | undefined;
+      
+      if (nomination.id) {
+        // First check by ID if present
+        const existing = await dexieDb.nominations.get(nomination.id);
+        if (existing) {
+          existingId = nomination.id;
+        }
+      }
+      
+      // If no ID found, check by nomineeId
+      if (!existingId && nomination.nomineeId) {
+        const existing = await dexieDb.nominations.where({ nomineeId: nomination.nomineeId }).first();
+        if (existing && existing.id) {
+          existingId = existing.id;
+        }
+      }
+      
+      let id: number;
+      
+      if (existingId) {
+        // Update existing nomination instead of adding new
+        id = existingId;
+        await dexieDb.nominations.update(id, {
+          ...nomination,
+          updatedAt: new Date()
+        });
+      } else {
+        // Add new nomination
+        id = await dexieDb.nominations.add(nomination);
+      }
+      
       const nominationWithId = { ...nomination, id };
       
       // Try to add to Firestore
@@ -170,6 +236,10 @@ export const nominationService = {
       return id.toString();
     } catch (error) {
       console.error('Error adding nomination:', error);
+      // Return a string ID even if there's an error - this prevents retries that will just fail again
+      if (error.name === 'ConstraintError' && nomination.id) {
+        return nomination.id.toString();
+      }
       throw error;
     }
   },

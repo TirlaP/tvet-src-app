@@ -50,7 +50,7 @@ const SupportPage: React.FC = () => {
   const [isSupported, setIsSupported] = useState(false);
   const [supportCount, setSupportCount] = useState(0);
   
-  // Pre-fill form with current user data if available
+  // Pre-fill form with current user data if available, but ALWAYS set dataConsent to false
   const defaultValues: Partial<SupporterData> = {
     fullName: currentUser?.fullName || '',
     studentNumber: currentUser?.studentNumber || '',
@@ -58,7 +58,7 @@ const SupportPage: React.FC = () => {
     cellNumber: currentUser?.cellNumber || '',
     course: currentUser?.course || '',
     yearOfStudy: currentUser?.yearOfStudy || '',
-    dataConsent: currentUser?.dataConsent || false,
+    dataConsent: false, // Always default to unchecked
   };
 
   const form = useForm<SupporterData>({
@@ -67,7 +67,7 @@ const SupportPage: React.FC = () => {
     mode: 'onChange',
   });
 
-  // Reset form with user data when it changes
+  // Reset form with user data when it changes, but always keep dataConsent unchecked
   useEffect(() => {
     if (currentUser) {
       form.reset({
@@ -77,7 +77,7 @@ const SupportPage: React.FC = () => {
         cellNumber: currentUser.cellNumber || '',
         course: currentUser.course || '',
         yearOfStudy: currentUser.yearOfStudy || '',
-        dataConsent: currentUser.dataConsent || false,
+        dataConsent: false, // Always reset to unchecked
       });
     }
   }, [currentUser, form]);

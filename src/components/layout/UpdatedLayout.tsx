@@ -36,8 +36,13 @@ const UpdatedLayout: React.FC<LayoutProps> = ({ children }) => {
           <div className="flex justify-between items-center">
             {/* Logo and Title */}
             <div className="flex items-center">
-              <Link to="/" className="text-primary font-bold text-xl flex items-center">
-                TVET SRC Elections
+              <Link to="/" className="flex items-center">
+                <img 
+                  src="/Inqola-voting-logo.png" 
+                  alt="Inqola Voting Logo" 
+                  className="h-10 mr-2" 
+                />
+                <span className="text-primary font-bold text-xl">TVET SRC Elections</span>
               </Link>
             </div>
 
@@ -322,7 +327,12 @@ const UpdatedLayout: React.FC<LayoutProps> = ({ children }) => {
       <footer className="bg-white border-t py-6">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="mb-4 md:mb-0">
+            <div className="mb-4 md:mb-0 flex items-center">
+              <img 
+                src="/Inqola-voting-logo.png" 
+                alt="Inqola Voting Logo" 
+                className="h-8 mr-2" 
+              />
               <p className="text-sm text-gray-600">
                 &copy; {new Date().getFullYear()} TVET SRC Elections. All rights reserved.
               </p>

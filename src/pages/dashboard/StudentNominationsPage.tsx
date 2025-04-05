@@ -279,7 +279,7 @@ const StudentNominationsPage: React.FC = () => {
       
       {/* Share Dialog */}
       <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Share Nomination</DialogTitle>
             <DialogDescription>
@@ -300,6 +300,22 @@ const StudentNominationsPage: React.FC = () => {
                   You need 3 supporters to complete your nomination
                 </AlertDescription>
               </Alert>
+              
+              {/* QR Code */}
+              {selectedNomination.shareLink && (
+                <div className="flex flex-col items-center my-4">
+                  <div className="border p-2 rounded-md bg-white">
+                    <img 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${window.location.origin}/support/${selectedNomination.shareLink}`)}`} 
+                      alt="QR Code" 
+                      className="h-48 w-48"
+                    />
+                  </div>
+                  <p className="text-sm text-center text-gray-500 mt-2">
+                    Scan this QR code to support the nomination
+                  </p>
+                </div>
+              )}
               
               <div className="flex flex-col space-y-2">
                 <div className="flex items-center justify-between gap-2 border rounded-md p-2">

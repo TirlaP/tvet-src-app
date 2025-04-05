@@ -35,7 +35,7 @@ const NominationLayout: React.FC<NominationLayoutProps> = ({
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-white border-b py-4 sticky top-0 z-10">
+      <header className="bg-white border-b py-4 sticky top-0 z-20"> {/* Changed z-10 to z-20 */}
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
@@ -64,7 +64,7 @@ const NominationLayout: React.FC<NominationLayoutProps> = ({
         </div>
       </header>
 
-      <main className="flex-grow">
+      <main className="flex-grow relative z-[1]"> {/* Added relative z-[1] to ensure main content is below header but above other elements */}
         <div className="container mx-auto px-4 py-6">
           {children}
         </div>

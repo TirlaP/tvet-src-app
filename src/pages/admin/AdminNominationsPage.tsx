@@ -42,7 +42,9 @@ import {
   ChevronDown, 
   FileText,
   Filter,
-  Download
+  Download,
+  MoreVertical,
+  Eye
 } from 'lucide-react';
 
 // Array of SRC positions
@@ -329,6 +331,100 @@ const AdminNominationsPage: React.FC = () => {
     }
   };
 
+  // Render mobile card view for nominations
+  const renderMobileCard = (nomination: NominationWithDetails) => {
+    return (
+      <Card key={nomination.id} className="mb-4">
+        <CardContent className="pt-4 pb-2">
+          <div className="flex justify-between items-start">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 h-8 w-8 bg-gray-100 rounded-full flex items-center justify-center">
+                <User className="h-4 w-4 text-gray-500" />
+              </div>
+              <div className="ml-3">
+                <div className="text-sm font-medium text-gray-900">
+                  {nomination.nominee.fullName}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {nomination.nominee.email}
+                </div>
+              </div>
+            </div>
+            <div>
+              {getStatusBadge(nomination.status)}
+            </div>
+          </div>
+          
+          <div className="mt-3 border-t pt-3 grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <span className="text-gray-500">Position:</span>
+              <div className="font-medium">{nomination.position}</div>
+            </div>
+            <div>
+              <span className="text-gray-500">Student Number:</span>
+              <div className="font-medium">{nomination.nominee.studentNumber}</div>
+            </div>
+            <div>
+              <span className="text-gray-500">Supporters:</span>
+              <div className="font-medium">{nomination.supporters.length} / 3</div>
+            </div>
+            <div>
+              <span className="text-gray-500">Created:</span>
+              <div className="font-medium">{new Date(nomination.createdAt).toLocaleDateString()}</div>
+            </div>
+          </div>
+        </CardContent>
+        
+        <CardFooter className="border-t py-2 flex justify-end">
+          <div className="flex space-x-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 px-2"
+              onClick={() => {
+                setSelectedNomination(nomination);
+                setShowDetailsDialog(true);
+              }}
+            >
+              <Eye className="h-4 w-4 mr-1" />
+              Details
+            </Button>
+            
+            {nomination.status === NominationStatus.PENDING && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2 text-green-600"
+                  onClick={() => {
+                    setSelectedNomination(nomination);
+                    setShowApproveDialog(true);
+                  }}
+                >
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                  Approve
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2 text-red-600"
+                  onClick={() => {
+                    setSelectedNomination(nomination);
+                    setShowRejectDialog(true);
+                  }}
+                >
+                  <XCircle className="h-4 w-4 mr-1" />
+                  Reject
+                </Button>
+              </>
+            )}
+          </div>
+        </CardFooter>
+      </Card>
+    );
+  };
+
   if (!isAdmin) {
     return null;
   }
@@ -351,98 +447,105 @@ const AdminNominationsPage: React.FC = () => {
           </div>
         </div>
           
-          {/* Filters */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center">
-                <Filter className="h-4 w-4 mr-1" />
-                Filter Nominations
-              </CardTitle>
-              <CardDescription>
-                Use the filters below to find specific nominations
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-                  <Input 
-                    placeholder="Search nominee name or ID..."
-                    className="pl-8"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-                
-                <Select
-                  value={positionFilter}
-                  onValueChange={setPositionFilter}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Filter by position" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {positions.map((position) => (
-                      <SelectItem key={position.id} value={position.id}>
-                        {position.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                
-                <Select
-                  value={statusFilter}
-                  onValueChange={setStatusFilter}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Filter by status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {statusOptions.map((status) => (
-                      <SelectItem key={status.id} value={status.id}>
-                        {status.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-between border-t p-4 bg-gray-50">
-              <div className="text-sm text-gray-500">
-                {filteredNominations.length} nominations found
+        {/* Filters */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center">
+              <Filter className="h-4 w-4 mr-1" />
+              Filter Nominations
+            </CardTitle>
+            <CardDescription>
+              Use the filters below to find specific nominations
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                <Input 
+                  placeholder="Search nominee name or ID..."
+                  className="pl-8"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
               
-              <Button 
-                variant="ghost" 
-                className="h-8 px-2 text-xs"
-                onClick={() => {
-                  setSearchTerm('');
-                  setPositionFilter('all');
-                  setStatusFilter('all');
-                }}
+              <Select
+                value={positionFilter}
+                onValueChange={setPositionFilter}
               >
-                Reset Filters
-              </Button>
-            </CardFooter>
-          </Card>
-          
-          {/* Nominations List */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Nominations List</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="py-8 flex justify-center">
-                  <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by position" />
+                </SelectTrigger>
+                <SelectContent>
+                  {positions.map((position) => (
+                    <SelectItem key={position.id} value={position.id}>
+                      {position.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select
+                value={statusFilter}
+                onValueChange={setStatusFilter}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {statusOptions.map((status) => (
+                    <SelectItem key={status.id} value={status.id}>
+                      {status.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-between border-t p-4 bg-gray-50">
+            <div className="text-sm text-gray-500">
+              {filteredNominations.length} nominations found
+            </div>
+            
+            <Button 
+              variant="ghost" 
+              className="h-8 px-2 text-xs"
+              onClick={() => {
+                setSearchTerm('');
+                setPositionFilter('all');
+                setStatusFilter('all');
+              }}
+            >
+              Reset Filters
+            </Button>
+          </CardFooter>
+        </Card>
+        
+        {/* Nominations List */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Nominations List</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="py-8 flex justify-center">
+                <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            ) : currentItems.length === 0 ? (
+              <div className="text-center py-8">
+                <FileText className="h-12 w-12 mx-auto text-gray-300" />
+                <p className="mt-2 text-gray-500">No nominations found</p>
+              </div>
+            ) : (
+              <>
+                {/* Mobile View (Only visible on small screens) */}
+                <div className="md:hidden space-y-4">
+                  {currentItems.map(nomination => renderMobileCard(nomination))}
                 </div>
-              ) : currentItems.length === 0 ? (
-                <div className="text-center py-8">
-                  <FileText className="h-12 w-12 mx-auto text-gray-300" />
-                  <p className="mt-2 text-gray-500">No nominations found</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
+                
+                {/* Desktop Table View (Hidden on small screens) */}
+                <div className="hidden md:block overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
@@ -558,58 +661,59 @@ const AdminNominationsPage: React.FC = () => {
                     </tbody>
                   </table>
                 </div>
-              )}
-            </CardContent>
-            
-            {/* Pagination */}
-            {!isLoading && filteredNominations.length > 0 && (
-              <CardFooter className="border-t pt-4 flex justify-between">
-                <div className="text-sm text-gray-500">
-                  Showing {indexOfFirstItem + 1} to{' '}
-                  {indexOfLastItem > filteredNominations.length 
-                    ? filteredNominations.length 
-                    : indexOfLastItem}{' '}
-                  of {filteredNominations.length} nominations
-                </div>
-                
-                <div className="flex space-x-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-xs h-8 px-2"
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage(currentPage - 1)}
-                  >
-                    Previous
-                  </Button>
-                  
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <Button
-                      key={page}
-                      variant={page === currentPage ? 'default' : 'outline'}
-                      size="sm"
-                      className="text-xs h-8 w-8 px-0"
-                      onClick={() => setCurrentPage(page)}
-                    >
-                      {page}
-                    </Button>
-                  ))}
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-xs h-8 px-2"
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage(currentPage + 1)}
-                  >
-                    Next
-                  </Button>
-                </div>
-              </CardFooter>
+              </>
             )}
-          </Card>
-        </div>
-      
+          </CardContent>
+          
+          {/* Pagination */}
+          {!isLoading && filteredNominations.length > 0 && (
+            <CardFooter className="border-t pt-4 flex flex-col sm:flex-row justify-between items-center">
+              <div className="text-sm text-gray-500 mb-2 sm:mb-0 text-center sm:text-left">
+                Showing {indexOfFirstItem + 1} to{' '}
+                {indexOfLastItem > filteredNominations.length 
+                  ? filteredNominations.length 
+                  : indexOfLastItem}{' '}
+                of {filteredNominations.length} nominations
+              </div>
+              
+              <div className="flex flex-wrap justify-center gap-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs h-8 px-2"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                >
+                  Previous
+                </Button>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <Button
+                    key={page}
+                    variant={page === currentPage ? 'default' : 'outline'}
+                    size="sm"
+                    className="text-xs h-8 w-8 px-0"
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </Button>
+                ))}
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs h-8 px-2"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                >
+                  Next
+                </Button>
+              </div>
+            </CardFooter>
+          )}
+        </Card>
+      </div>
+    
       {/* Approve Dialog */}
       <AlertDialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
         <AlertDialogContent>
@@ -619,8 +723,8 @@ const AdminNominationsPage: React.FC = () => {
               Are you sure you want to approve {selectedNomination?.nominee.fullName}'s nomination for {selectedNomination?.position}?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel className="mt-0">Cancel</AlertDialogCancel>
             <AlertDialogAction 
               className="bg-green-600 hover:bg-green-700"
               onClick={approveNomination}
@@ -640,8 +744,8 @@ const AdminNominationsPage: React.FC = () => {
               Are you sure you want to reject {selectedNomination?.nominee.fullName}'s nomination for {selectedNomination?.position}?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel className="mt-0">Cancel</AlertDialogCancel>
             <AlertDialogAction 
               className="bg-red-600 hover:bg-red-700"
               onClick={rejectNomination}
@@ -654,7 +758,7 @@ const AdminNominationsPage: React.FC = () => {
       
       {/* Details Dialog */}
       <AlertDialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
-        <AlertDialogContent className="max-w-2xl">
+        <AlertDialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <AlertDialogHeader>
             <AlertDialogTitle>Nomination Details</AlertDialogTitle>
             <AlertDialogDescription>
@@ -753,7 +857,7 @@ const AdminNominationsPage: React.FC = () => {
               </div>
               
               {selectedNomination.status === NominationStatus.PENDING && (
-                <div className="flex justify-center space-x-2 pt-2">
+                <div className="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-2 pt-2">
                   <Button
                     variant="outline"
                     className="text-green-600 border-green-600 hover:bg-green-50"

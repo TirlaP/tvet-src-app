@@ -45,7 +45,7 @@ export const Stepper: React.FC<StepperProps> = ({
               <div
                 onClick={() => isClickable && onStepClick?.(index + 1)}
                 className={cn(
-                  "flex items-center justify-center rounded-full z-10 w-8 h-8",
+                  "flex items-center justify-center rounded-full z-[9] w-8 h-8", // Changed z-10 to z-[9]
                   isCompleted ? "bg-primary text-white" : 
                   isCurrent ? "bg-primary text-white" : "bg-gray-200 text-gray-500",
                   isClickable && "cursor-pointer hover:ring-2 hover:ring-primary/30"
@@ -79,7 +79,7 @@ export const Stepper: React.FC<StepperProps> = ({
               {index < steps.length - 1 && (
                 <div 
                   className={cn(
-                    "absolute top-4 left-0 -translate-y-1/2 h-[2px] w-full",
+                    "absolute top-4 left-0 -translate-y-1/2 h-[2px] w-full z-[8]", // Added z-[8]
                     // Don't extend the line all the way for first and last
                     index === 0 ? "left-4" : "",
                     index === steps.length - 2 ? "right-4 w-[calc(100%-16px)]" : ""

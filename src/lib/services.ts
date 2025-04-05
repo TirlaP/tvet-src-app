@@ -11,6 +11,7 @@ import {
 } from '../types/database';
 import { db } from '../db/db';
 import { generateUniqueId } from './utils';
+import firebaseService from '../firebase/firebaseService';
 
 // Student Services
 export const studentService = {
@@ -29,7 +30,20 @@ export const studentService = {
       createdAt: now,
       updatedAt: now
     };
-    return await db.students.add(studentData);
+    
+    // First save to IndexedDB
+    const id = await db.students.add(studentData);
+    
+    try {
+      // Then try to save to Firebase
+      await firebaseService.student.add({...studentData, id} as Student);
+      console.log('Student synced to Firebase:', id);
+    } catch (error) {
+      console.error('Failed to sync student to Firebase. Will try later:', error);
+      // We'll continue even if Firebase sync fails
+    }
+    
+    return id;
   },
 
   update: async (id: number, student: Partial<Student>): Promise<number> => {
@@ -77,7 +91,36 @@ export const nominationService = {
       updatedAt: now
     };
     
-    return await db.nominations.add(nominationData);
+    try {
+      // First save to IndexedDB
+      const id = await db.nominations.add(nominationData);
+      
+      try {
+        // Then try to save to Firebase
+        const nominationWithId = { ...nominationData, id };
+        await firebaseService.nomination.add(nominationWithId as Nomination);
+        console.log('Nomination synced to Firebase:', id);
+      } catch (error) {
+        console.error('Failed to sync nomination to Firebase. Will try later:', error);
+        // We'll continue even if Firebase sync fails - data is still in IndexedDB
+      }
+      
+      return id;
+    } catch (error) {
+      // Handle the case where the key already exists
+      if (error.name === 'ConstraintError' && error.message.includes('already exists')) {
+        console.warn('Nomination already exists, returning existing ID');
+        
+        // Try to find the existing nomination by nominee ID
+        const existingNomination = await db.nominations.where('nomineeId').equals(nomination.nomineeId).first();
+        if (existingNomination && existingNomination.id) {
+          return existingNomination.id;
+        }
+      }
+      
+      // If not a duplicate key or we couldn't find the existing nomination, rethrow
+      throw error;
+    }
   },
 
   update: async (id: number, nomination: Partial<Nomination>): Promise<number> => {
@@ -85,7 +128,19 @@ export const nominationService = {
       ...nomination,
       updatedAt: new Date()
     };
+    
+    // Update in IndexedDB
     await db.nominations.update(id, updatedNomination);
+    
+    try {
+      // Try to update in Firebase
+      await firebaseService.nomination.update(id, updatedNomination);
+      console.log('Nomination update synced to Firebase:', id);
+    } catch (error) {
+      console.error('Failed to sync nomination update to Firebase:', error);
+      // Continue even if Firebase sync fails
+    }
+    
     return id;
   },
 
