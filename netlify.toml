@@ -1,11 +1,21 @@
 [build]
   command = "npm run build:ignore"
   publish = "dist"
+  functions = "netlify/functions"
 
 # Ignore TypeScript errors during build
 [build.environment]
   NETLIFY_USE_YARN = "false"
   CI = "false"
+  
+# Firebase environment variables for build
+  VITE_FIREBASE_API_KEY = "AIzaSyCNRUWxYDEaNG0YrFfzfZSmMff2A4XjtcY"
+  VITE_FIREBASE_AUTH_DOMAIN = "receipt-scanner-petru.firebaseapp.com"
+  VITE_FIREBASE_PROJECT_ID = "receipt-scanner-petru"
+  VITE_FIREBASE_STORAGE_BUCKET = "receipt-scanner-petru.firebasestorage.app"
+  VITE_FIREBASE_MESSAGING_SENDER_ID = "906835820228"
+  VITE_FIREBASE_APP_ID = "1:906835820228:web:982ccbc57871841c329391"
+  VITE_FIREBASE_MEASUREMENT_ID = "G-1PSC68EZPT"
 
 # Handle SPA routing
 [[redirects]]

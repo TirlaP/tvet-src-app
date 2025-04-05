@@ -27,6 +27,9 @@ export const studentSchema = z.object({
 export const loginSchema = z.object({
   studentNumber: z.string().refine(isValidStudentNumber, {
     message: 'Please enter a valid student number'
+  }),
+  email: z.string().refine(isValidEmail, {
+    message: 'Please enter a valid email address'
   })
 });
 
@@ -71,4 +74,3 @@ export const adminFilterSchema = z.object({
   position: z.string().optional(),
   searchTerm: z.string().optional()
 });
-
